@@ -14,6 +14,7 @@ import com.devsenior.gestorproductos.dto.BrandRequest;
 import com.devsenior.gestorproductos.dto.BrandResponse;
 import com.devsenior.gestorproductos.service.BrandService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
@@ -32,6 +33,7 @@ public class BrandController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.CREATED)
     public BrandResponse create(@Valid @RequestBody BrandRequest request) {
         return brandService.create(request);

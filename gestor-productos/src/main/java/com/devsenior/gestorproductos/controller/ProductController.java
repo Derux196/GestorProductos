@@ -14,6 +14,7 @@ import com.devsenior.gestorproductos.dto.ProductRequest;
 import com.devsenior.gestorproductos.dto.ProductResponse;
 import com.devsenior.gestorproductos.service.ProductService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
@@ -32,6 +33,7 @@ public class ProductController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.CREATED)
     public ProductResponse create(@Valid @RequestBody ProductRequest request) {
         return productService.create(request);

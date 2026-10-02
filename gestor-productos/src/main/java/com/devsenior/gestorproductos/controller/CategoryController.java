@@ -14,6 +14,7 @@ import com.devsenior.gestorproductos.dto.CategoryRequest;
 import com.devsenior.gestorproductos.dto.CategoryResponse;
 import com.devsenior.gestorproductos.service.CategoryService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
@@ -32,6 +33,7 @@ public class CategoryController {
     }
 
     @PostMapping
+    @SecurityRequirement(name = "bearerAuth")
     @ResponseStatus(HttpStatus.CREATED)
     public CategoryResponse create(@Valid @RequestBody CategoryRequest request) {
         return categoryService.create(request);

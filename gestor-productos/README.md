@@ -34,6 +34,7 @@ Desde esta carpeta:
 ```
 
 La API queda disponible en `http://localhost:8080`.
+La documentación interactiva Swagger UI queda disponible en `http://localhost:8080/swagger-ui/index.html`.
 
 Para probarla sin configurar MySQL, inicia el perfil H2 de demostración desde PowerShell:
 

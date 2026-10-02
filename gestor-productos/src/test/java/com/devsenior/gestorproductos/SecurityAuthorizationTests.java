@@ -2,6 +2,7 @@ package com.devsenior.gestorproductos;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -40,6 +41,15 @@ class SecurityAuthorizationTests {
         mockMvc.perform(get("/api/categorias")).andExpect(status().isOk());
         mockMvc.perform(get("/api/marcas")).andExpect(status().isOk());
     }
+
+        @Test
+        void swaggerDocumentationIsPublic() throws Exception {
+                mockMvc.perform(get("/v3/api-docs"))
+                                .andExpect(status().isOk())
+                                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+                mockMvc.perform(get("/swagger-ui/index.html"))
+                                .andExpect(status().isOk());
+        }
 
     @Test
     void categoryWritesRequireAdmin() throws Exception {
