@@ -35,6 +35,14 @@ Desde esta carpeta:
 
 La API queda disponible en `http://localhost:8080`.
 
+Para probarla sin configurar MySQL, inicia el perfil H2 de demostración desde PowerShell:
+
+```powershell
+./mvnw.cmd spring-boot:run "-Dspring-boot.run.profiles=test" "-Dspring-boot.run.useTestClasspath=true"
+```
+
+Ese perfil carga datos de ejemplo en una base temporal en memoria; al detener la aplicación, se borran.
+
 ## Endpoints
 
 | Método | Ruta | Acceso |
