@@ -23,7 +23,7 @@ En `SecurityConfig.java`, agrega las reglas de categorías y marcas antes de `.a
 
 ### Registro de pruebas
 
-Resultados observados en la suite automatizada con MockMvc y H2 en memoria. Para una evidencia manual, ejecuta además las mismas peticiones en Swagger UI o Postman.
+Resultados observados en la suite automatizada con MockMvc y H2 en memoria. El ejercicio 3 también se comprobó manualmente contra MySQL desde Workbench y la API.
 
 | Recurso | Petición | Credencial | Esperado | Observado |
 |---|---|---|---:|---:|
@@ -50,16 +50,16 @@ Registra un usuario nuevo y conserva el token devuelto. Verifica en MySQL Workbe
 
 | Paso | Petición o acción | Resultado esperado | Observado |
 |---|---|---|---|
-| 1 | `POST /api/auth/register` | Registro exitoso; contraseña hasheada en la base | 201; hash BCrypt verificado (`$2...`) |
-| 2 | `POST /api/auth/login` | Login exitoso y token disponible | 200 |
-| 3 | `GET /api/productos` sin token | 200 | 200 |
-| 4 | `POST /api/productos` con token `USER` | 403 | 403 |
-| 5 | Promover al usuario a `ADMIN` en la base de datos | Rol actualizado | `UPDATE` aplicado en H2 de prueba |
-| 6 | Volver a iniciar sesión y usar el token nuevo | Login exitoso | 200 |
-| 7 | `POST /api/productos` con token `ADMIN` nuevo | 200 o 201 | 201 |
-| 8 | `GET /api/productos` con o sin token | 200 | 200 |
+| 1 | `POST /api/auth/register` | Registro exitoso; contraseña hasheada en la base | HTTP 201; prefijo BCrypt `$2a$` verificado en MySQL |
+| 2 | `POST /api/auth/login` | Login exitoso y token disponible | HTTP 200 |
+| 3 | `GET /api/productos` sin token | 200 | HTTP 200 (prueba automatizada) |
+| 4 | `POST /api/productos` con token `USER` | 403 | HTTP 403 (comprobado contra MySQL) |
+| 5 | Promover al usuario a `ADMIN` en la base de datos | Rol actualizado | Workbench: 1 fila encontrada y cambiada; rol `ADMIN` |
+| 6 | Volver a iniciar sesión y usar el token nuevo | Login exitoso | HTTP 200; token nuevo con rol `ADMIN` |
+| 7 | `POST /api/productos` con token `ADMIN` nuevo | 200 o 201 | HTTP 201 (producto guardado en MySQL) |
+| 8 | `GET /api/productos` con o sin token | 200 | HTTP 200; producto persistido visible con JWT `ADMIN` |
 
-La suite verifica el ciclo completo en H2: BCrypt, registro, rechazo de escritura como `USER`, promoción y nuevo login, y creación de producto como `ADMIN`. Para repetir la promoción en MySQL Workbench, confirma el esquema y ejecuta `UPDATE usuarios SET role = 'ADMIN' WHERE email = 'vendedor@tienda.com';`; después vuelve a iniciar sesión. El token anterior conserva el rol `USER` con el que se emitió.
+La suite verifica el ciclo completo en H2; además, el flujo se ejecutó manualmente contra MySQL. En Workbench, `vendedor@tienda.com` quedó como `ADMIN` con prefijo BCrypt `$2a$`, y la API creó un producto con HTTP 201 usando un JWT nuevo. El token anterior conserva el rol `USER` con el que se emitió.
 
 ## Opcionales
 
@@ -68,4 +68,4 @@ La suite verifica el ciclo completo en H2: BCrypt, registro, rechazo de escritur
 
 ## Nota sobre verificación
 
-Se creó el proyecto Spring Boot en `gestor-productos/`, con las rutas, roles, JWT y Swagger UI de esta guía. La suite automatizada valida los códigos HTTP anotados en las tablas usando H2 en memoria. La ejecución manual con MySQL Workbench aún depende de configurar tus credenciales locales; los resultados indicados corresponden a las pruebas automatizadas, no a una conexión observada a MySQL.
+Se creó el proyecto Spring Boot en `gestor-productos/`, con las rutas, roles, JWT y Swagger UI de esta guía. La suite automatizada pasó con H2 y el ejercicio 3 también se verificó manualmente en MySQL Workbench y contra la API local. La contraseña real nunca se incluyó en el repositorio.
