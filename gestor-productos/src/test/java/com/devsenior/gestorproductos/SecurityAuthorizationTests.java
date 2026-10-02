@@ -121,6 +121,14 @@ class SecurityAuthorizationTests {
                 .content("{\"name\":\"No autorizado\"}"))
                 .andExpect(status().isForbidden());
 
+        String productBody = "{\"name\":\"Producto de prueba " + UUID.randomUUID()
+                + "\",\"description\":\"Prueba de permisos\",\"price\":19.99,\"categoryId\":1,\"brandId\":1}";
+        mockMvc.perform(post("/api/productos")
+                .header("Authorization", "Bearer " + userToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(productBody))
+                .andExpect(status().isForbidden());
+
         jdbcTemplate.update("UPDATE usuarios SET role = 'ADMIN' WHERE email = ?", email);
         MvcResult login = mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -129,10 +137,12 @@ class SecurityAuthorizationTests {
                 .andReturn();
         String adminToken = JsonPath.read(login.getResponse().getContentAsString(), "$.token");
 
-        mockMvc.perform(post("/api/categorias")
+        mockMvc.perform(post("/api/productos")
                 .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{\"name\":\"Permitido\"}"))
+                .content(productBody))
                 .andExpect(status().isCreated());
+        mockMvc.perform(get("/api/productos").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk());
     }
 }

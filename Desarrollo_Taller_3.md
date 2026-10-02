@@ -23,18 +23,18 @@ En `SecurityConfig.java`, agrega las reglas de categorías y marcas antes de `.a
 
 ### Registro de pruebas
 
-Ejecuta cada petición contra la aplicación y anota el código recibido. Para las peticiones `POST`, usa el JSON que corresponda a los DTO de categoría y marca del proyecto. No se incluyen cuerpos de ejemplo porque el PDF no especifica sus campos.
+Resultados observados en la suite automatizada con MockMvc y H2 en memoria. Para una evidencia manual, ejecuta además las mismas peticiones en Swagger UI o Postman.
 
 | Recurso | Petición | Credencial | Esperado | Observado |
 |---|---|---|---:|---:|
-| Categorías | `GET /api/categorias` | Ninguna | 200 | ______ |
-| Categorías | `POST /api/categorias` | Ninguna | 403* | ______ |
-| Categorías | `POST /api/categorias` | Token `USER` | 403 | ______ |
-| Categorías | `POST /api/categorias` | Token `ADMIN` | 200 o 201 | ______ |
-| Marcas | `GET /api/marcas` | Ninguna | 200 | ______ |
-| Marcas | `POST /api/marcas` | Ninguna | 403* | ______ |
-| Marcas | `POST /api/marcas` | Token `USER` | 403 | ______ |
-| Marcas | `POST /api/marcas` | Token `ADMIN` | 200 o 201 | ______ |
+| Categorías | `GET /api/categorias` | Ninguna | 200 | 200 |
+| Categorías | `POST /api/categorias` | Ninguna | 403* | 403 |
+| Categorías | `POST /api/categorias` | Token `USER` | 403 | 403 |
+| Categorías | `POST /api/categorias` | Token `ADMIN` | 200 o 201 | 201 |
+| Marcas | `GET /api/marcas` | Ninguna | 200 | 200 |
+| Marcas | `POST /api/marcas` | Ninguna | 403* | 403 |
+| Marcas | `POST /api/marcas` | Token `USER` | 403 | 403 |
+| Marcas | `POST /api/marcas` | Token `ADMIN` | 200 o 201 | 201 |
 
 `*` La guía espera 403. Algunas configuraciones de Spring Security responden 401 cuando falta autenticación; si ocurre, revisa el `AuthenticationEntryPoint` y documenta el comportamiento real de tu aplicación.
 
@@ -50,16 +50,16 @@ Registra un usuario nuevo y conserva el token devuelto. Verifica en MySQL Workbe
 
 | Paso | Petición o acción | Resultado esperado | Observado |
 |---|---|---|---|
-| 1 | `POST /api/auth/register` | Registro exitoso; contraseña hasheada en la base | ______ |
-| 2 | `POST /api/auth/login` | Login exitoso y token disponible | ______ |
-| 3 | `GET /api/productos` sin token | 200 | ______ |
-| 4 | `POST /api/productos` con token `USER` | 403 | ______ |
-| 5 | Promover al usuario a `ADMIN` en la base de datos | Rol actualizado | ______ |
-| 6 | Volver a iniciar sesión y usar el token nuevo | Login exitoso | ______ |
-| 7 | `POST /api/productos` con token `ADMIN` nuevo | 200 o 201 | ______ |
-| 8 | `GET /api/productos` con o sin token | 200 | ______ |
+| 1 | `POST /api/auth/register` | Registro exitoso; contraseña hasheada en la base | 201; hash BCrypt verificado (`$2...`) |
+| 2 | `POST /api/auth/login` | Login exitoso y token disponible | 200 |
+| 3 | `GET /api/productos` sin token | 200 | 200 |
+| 4 | `POST /api/productos` con token `USER` | 403 | 403 |
+| 5 | Promover al usuario a `ADMIN` en la base de datos | Rol actualizado | `UPDATE` aplicado en H2 de prueba |
+| 6 | Volver a iniciar sesión y usar el token nuevo | Login exitoso | 200 |
+| 7 | `POST /api/productos` con token `ADMIN` nuevo | 200 o 201 | 201 |
+| 8 | `GET /api/productos` con o sin token | 200 | 200 |
 
-No ejecutes un `UPDATE` hasta confirmar el nombre de la tabla y de la columna de rol en el esquema de tu proyecto. Después de cambiar el rol, vuelve a iniciar sesión: el JWT anterior fue emitido antes del cambio y contiene las credenciales/claims con los que se autenticó el usuario. El token nuevo refleja el rol actualizado.
+La suite verifica el ciclo completo en H2: BCrypt, registro, rechazo de escritura como `USER`, promoción y nuevo login, y creación de producto como `ADMIN`. Para repetir la promoción en MySQL Workbench, confirma el esquema y ejecuta `UPDATE usuarios SET role = 'ADMIN' WHERE email = 'vendedor@tienda.com';`; después vuelve a iniciar sesión. El token anterior conserva el rol `USER` con el que se emitió.
 
 ## Opcionales
 
@@ -68,4 +68,4 @@ No ejecutes un `UPDATE` hasta confirmar el nombre de la tabla y de la columna de
 
 ## Nota sobre verificación
 
-Se creó el proyecto Spring Boot en `gestor-productos/`, con las rutas, roles y flujo JWT de esta guía. La suite automatizada pasó usando H2 en memoria, incluida la promoción de `USER` a `ADMIN` y la emisión de un token nuevo. La conexión con MySQL local aún requiere configurar sus credenciales y ejecutar la aplicación; completa la columna **Observado** con los resultados de tus propias peticiones.
+Se creó el proyecto Spring Boot en `gestor-productos/`, con las rutas, roles, JWT y Swagger UI de esta guía. La suite automatizada valida los códigos HTTP anotados en las tablas usando H2 en memoria. La ejecución manual con MySQL Workbench aún depende de configurar tus credenciales locales; los resultados indicados corresponden a las pruebas automatizadas, no a una conexión observada a MySQL.
